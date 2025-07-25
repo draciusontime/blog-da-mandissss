@@ -1,0 +1,45 @@
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title><%= post.title %> - Blog da Mandis</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/style.css">
+      </head>
+      <body>
+        <a href="/" class="back-home">← Voltar para Home</a>
+        <div class="post-view-container">
+          <div class="post-view-card">
+            <h2><%= post.title %></h2>
+            <% if (post.fileUrl) { %>
+              <div class="post-file">
+                <% if (post.fileUrl.endsWith('.pdf')) { %>
+                  <a href="<%= post.fileUrl %>" target="_blank">📄 Ver arquivo</a>
+                <% } else { %>
+                  <img src="<%= post.fileUrl %>" alt="Imagem do post" />
+                <% } %>
+              </div>
+            <% } %>
+            <p><%= post.content %></p>
+          </div>
+                <div class="comments-section">
+                  <h3>Comentários</h3>
+                  <ul>
+                    <% post.comments.forEach(function(c, idx) { %>
+                      <li>
+                        <span><%= c %></span>
+                        <% if (session && session.user === 'mandis') { %>
+                          <form method="POST" action="/post/<%= post.id %>/comment/<%= idx %>/delete" style="display:inline;">
+                            <button type="submit" class="delete-comment-btn" title="Excluir comentário">🗑️</button>
+                          </form>
+                        <% } %>
+                      </li>
+                    <% }) %>
+                  </ul>
+                  <form method="POST" action="/post/<%= post.id %>/comment" class="comment-form">
+                    <input type="text" name="comment" placeholder="Seu comentário..." required>
+                    <button type="submit">Comentar</button>
+                  </form>
+                </div>
+        </div>
+      </body>
+      </html>

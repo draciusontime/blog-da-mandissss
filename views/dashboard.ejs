@@ -1,0 +1,76 @@
+                                    <!DOCTYPE html>
+                                    <html>
+                                    <head>
+                                      <title>Dashboard - Blog da Mandis</title>
+                                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                      <link rel="stylesheet" href="/style.css">
+                                    </head>
+                                    <body>
+                                      <a href="/" class="back-home">← Voltar para Home</a>
+                                      <div class="dashboard-flex">
+                                        <!-- Coluna esquerda: Novo Post -->
+                                        <div class="dashboard-left">
+                                          <h2>Novo Post</h2>
+                                          <form method="POST" action="/dashboard" enctype="multipart/form-data">
+                                            <input type="text" name="title" placeholder="Título" required>
+                                            <textarea name="content" placeholder="Conteúdo" required></textarea>
+                                            <label class="file-upload-label">
+                                              <input type="file" name="file" accept="image/*,application/pdf" class="file-input">
+                                              <span class="file-upload-btn">
+                                                <svg width="22" height="22" fill="#b88c6a" viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4a7.49 7.49 0 0 0-7.35 6.04A5.994 5.994 0 0 0 6 20h13a5.994 5.994 0 0 0 .35-9.96zM12 2c4.08 0 7.44 3.06 7.93 7.04C21.95 9.02 22 9.51 22 10c0 3.31-2.69 6-6 6H8c-3.31 0-6-2.69-6-6 0-.49.05-.98.07-1.46C4.56 5.06 7.92 2 12 2zm-1 13h2v2h-2zm0-4h2v2h-2z"/></svg>
+                                                <span id="file-upload-text">Adicionar arquivo</span>
+                                              </span>
+                                            </label>
+                                            <span id="file-chosen" style="font-size:0.95em;color:#b88c6a;margin-top:2px;"></span>
+                                            <button type="submit">Publicar</button>
+                                          </form>
+                                          <a href="/logout" class="logout-link">Sair</a>
+                                        </div>
+                                        <!-- Coluna direita: Lista de Posts -->
+                                        <div class="dashboard-right">
+                                          <h2>Seus Posts</h2>
+                                          <div class="posts-feed">
+                                            <% if (posts.length === 0) { %>
+                                              <div class="no-posts">Nenhum post disponível ainda. Crie o primeiro!</div>
+                                            <% } else { %>
+                                              <% posts.forEach(function(post) { %>
+                                                <div class="post-card">
+                                                  <strong><%= post.title %></strong>
+                                                  <% if (post.fileUrl) { %>
+                                                    <div class="post-file">
+                                                      <% if (post.fileUrl.endsWith('.pdf')) { %>
+                                                        <a href="<%= post.fileUrl %>" target="_blank">📄 Ver arquivo</a>
+                                                      <% } else { %>
+                                                        <img src="<%= post.fileUrl %>" alt="Imagem do post" />
+                                                      <% } %>
+                                                    </div>
+                                                  <% } %>
+                                                  <p><%= post.content %></p>
+                                                  <div class="post-actions">
+                                                    <a href="/dashboard/edit/<%= post.id %>">Editar</a>
+                                                    <form action="/dashboard/delete/<%= post.id %>" method="POST" style="display:inline;">
+                                                      <button type="submit" class="delete-btn" onclick="return confirm('Tem certeza que deseja excluir esse post?')">Excluir</button>
+                                                    </form>
+                                                  </div>
+                                                </div>
+                                              <% }) %>
+                                            <% } %>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <script>
+                                        // Protege caso o input não exista (evita erro em outras páginas)
+                                        const fileInput = document.querySelector('.file-input');
+                                        const fileChosen = document.getElementById('file-chosen');
+                                        if (fileInput && fileChosen) {
+                                          fileInput.addEventListener('change', function(){
+                                            if(this.files.length > 0){
+                                              fileChosen.textContent = this.files[0].name;
+                                            } else {
+                                              fileChosen.textContent = '';
+                                            }
+                                          });
+                                        }
+                                      </script>
+                                    </body>
+                                    </html>

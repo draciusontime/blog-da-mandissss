@@ -1,0 +1,46 @@
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Blog da Mandis</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="/style.css">
+          </head>
+          <body>
+            <div class="top-bar">
+              <div class="logo">Blog da Mandis</div>
+              <% if (session && session.user === 'mandis') { %>
+                <a href="/dashboard" class="login-icon" style="font-size: 2rem; color: #5a3472;">👤</a>
+              <% } else { %>
+                <a href="/login" class="login-icon" style="font-size: 2rem; color: #5a3472;">👤</a>
+              <% } %>
+            </div>
+
+            <% if (posts.length === 0) { %>
+              <div class="welcome">
+                <h2>Bem-vinda ao seu blog especial!</h2>
+                <p>Aqui você pode compartilhar seus pensamentos, momentos e memórias...</p>
+              </div>
+            <% } else { %>
+              <div class="posts-feed home-feed">
+                <% posts.forEach(function(post) { %>
+                  <div class="post-card" onclick="window.location='/post/<%= post.id %>'" style="cursor:pointer;">
+                    <div class="post-title-feed"><%= post.title %></div>
+                    <% if (post.fileUrl) { %>
+                      <div class="post-file">
+                        <% if (post.fileUrl.endsWith('.pdf')) { %>
+                          <a href="<%= post.fileUrl %>" target="_blank">📄 Ver arquivo</a>
+                        <% } else { %>
+                          <img src="<%= post.fileUrl %>" alt="Imagem do post" />
+                        <% } %>
+                      </div>
+                    <% } %>
+                    <p><%= post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content %></p>
+                    <span class="comments-icon" title="Ver comentários">
+                      <svg width="24" height="24" fill="#b88c6a" viewBox="0 0 24 24"><path d="M20 17.17V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12l4 4V6a2 2 0 0 0-2-2z"/></svg>
+                    </span>
+                  </div>
+                <% }) %>
+              </div>
+            <% } %>
+          </body>
+          </html>

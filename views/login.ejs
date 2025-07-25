@@ -1,0 +1,22 @@
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Login - Blog da Mandis</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/style.css">
+      </head>
+      <body>
+        <a href="/" class="back-home">← Voltar para Home</a>
+        <div class="login-container">
+          <h2>Login</h2>
+          <form method="POST" action="/login">
+            <input type="text" name="username" placeholder="Usuário" required>
+            <input type="password" name="password" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+            <% if (error) { %>
+              <p class="login-error"><%= error %></p>
+            <% } %>
+          </form>
+        </div>
+      </body>
+      </html>

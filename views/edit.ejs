@@ -1,0 +1,19 @@
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <title>Editar Post - Blog da Mandis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <a href="/dashboard" class="back-home">← Voltar para Dashboard</a>
+    <div class="dashboard-container">
+      <h2>Editar Post</h2>
+      <form method="POST" action="/dashboard/edit/<%= post.id %>">
+        <input type="text" name="title" value="<%= post.title %>" required>
+        <textarea name="content" required><%= post.content %></textarea>
+        <button type="submit">Salvar Alterações</button>
+      </form>
+    </div>
+  </body>
+  </html>
