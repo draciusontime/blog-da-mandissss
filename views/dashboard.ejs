@@ -46,12 +46,12 @@
                                                     </div>
                                                   <% } %>
                                                   <p><%= post.content %></p>
-                                                  <div class="post-actions">
-                                                    <a href="/dashboard/edit/<%= post.id %>">Editar</a>
-                                                    <form action="/dashboard/delete/<%= post.id %>" method="POST" style="display:inline;">
-                                                      <button type="submit" class="delete-btn" onclick="return confirm('Tem certeza que deseja excluir esse post?')">Excluir</button>
-                                                    </form>
-                                                  </div>
+                                                                                    <div class="post-actions">
+                                    <a href="/dashboard/edit/<%= post._id %>">Editar</a>
+                                    <form action="/dashboard/delete/<%= post._id %>" method="POST" style="display:inline;">
+                                      <button type="submit" class="delete-btn" onclick="return confirm('Tem certeza que deseja excluir esse post?')">Excluir</button>
+                                    </form>
+                                  </div>
                                                 </div>
                                               <% }) %>
                                             <% } %>
