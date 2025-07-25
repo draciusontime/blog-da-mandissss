@@ -5,6 +5,28 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
+
+// Conectar ao MongoDB
+mongoose.connect('mongodb://localhost:27017/blog_mandis', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('Conectado ao MongoDB!');
+}).catch(err => {
+  console.error('Erro ao conectar ao MongoDB:', err);
+});
+
+// Schema para os posts
+const postSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  content: { type: String, required: true },
+  fileUrl: { type: String, default: null },
+  comments: [{ type: String }],
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Post = mongoose.model('Post', postSchema);
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -43,14 +65,30 @@ app.use('/uploads', express.static('uploads'));
 // Usuário fixo
 const USER = { username: 'mandis', passwordHash: '020407' }; // Substitua pelo hash real
 
-// Carregar posts
-function loadPosts() {
-  if (!fs.existsSync('posts.json')) return [];
-  return JSON.parse(fs.readFileSync('posts.json'));
+// Migração dos dados do JSON para MongoDB (executar uma vez)
+async function migrateFromJson() {
+  try {
+    const postCount = await Post.countDocuments();
+    if (postCount === 0 && fs.existsSync('posts.json')) {
+      const jsonData = JSON.parse(fs.readFileSync('posts.json'));
+      if (jsonData.length > 0) {
+        await Post.insertMany(jsonData.map(post => ({
+          title: post.title,
+          content: post.content,
+          fileUrl: post.fileUrl,
+          comments: post.comments || [],
+          createdAt: new Date(post.id) // usando o ID como timestamp
+        })));
+        console.log('Dados migrados do JSON para MongoDB!');
+      }
+    }
+  } catch (error) {
+    console.error('Erro na migração:', error);
+  }
 }
-function savePosts(posts) {
-  fs.writeFileSync('posts.json', JSON.stringify(posts, null, 2));
-}
+
+// Executar migração na inicialização
+migrateFromJson();
 
 // Rotas aqui...
 
@@ -79,87 +117,127 @@ function requireLogin(req, res, next) {
   next();
 }
 
-app.get('/dashboard', requireLogin, (req, res) => {
-  const posts = loadPosts();
-  res.render('dashboard', { posts }); // <-- aqui!
-});
-
-app.post('/dashboard', requireLogin, upload.single('file'), (req, res) => {
-  const posts = loadPosts();
-  let fileUrl = null;
-  if (req.file) {
-    fileUrl = '/uploads/' + req.file.filename;
+app.get('/dashboard', requireLogin, async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.render('dashboard', { posts });
+  } catch (error) {
+    console.error('Erro ao buscar posts:', error);
+    res.render('dashboard', { posts: [] });
   }
-  posts.unshift({
-    id: Date.now(),
-    title: req.body.title,
-    content: req.body.content,
-    fileUrl: fileUrl,
-    comments: []
-  });
-  savePosts(posts);
-  res.redirect('/dashboard');
 });
 
-app.get('/', (req, res) => {
-  const posts = loadPosts();
-  res.render('index', { posts, session: req.session });
+app.post('/dashboard', requireLogin, upload.single('file'), async (req, res) => {
+  try {
+    let fileUrl = null;
+    if (req.file) {
+      fileUrl = '/uploads/' + req.file.filename;
+    }
+    
+    const newPost = new Post({
+      title: req.body.title,
+      content: req.body.content,
+      fileUrl: fileUrl,
+      comments: []
+    });
+    
+    await newPost.save();
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error('Erro ao salvar post:', error);
+    res.redirect('/dashboard');
+  }
 });
 
-app.get('/post/:id', (req, res) => {
-  const posts = loadPosts();
-  const post = posts.find(p => p.id == req.params.id);
-  if (!post) return res.redirect('/');
-  res.render('post', { post, session: req.session });
+app.get('/', async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.render('index', { posts, session: req.session });
+  } catch (error) {
+    console.error('Erro ao buscar posts:', error);
+    res.render('index', { posts: [], session: req.session });
+  }
 });
 
-app.post('/post/:id/comment', (req, res) => {
-  const posts = loadPosts();
-  const post = posts.find(p => p.id == req.params.id);
-  if (!post) return res.redirect('/');
-  post.comments.push(req.body.comment);
-  savePosts(posts);
-  res.redirect('/post/' + req.params.id);
+app.get('/post/:id', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.redirect('/');
+    res.render('post', { post, session: req.session });
+  } catch (error) {
+    console.error('Erro ao buscar post:', error);
+    res.redirect('/');
+  }
+});
+
+app.post('/post/:id/comment', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.redirect('/');
+    
+    post.comments.push(req.body.comment);
+    await post.save();
+    res.redirect('/post/' + req.params.id);
+  } catch (error) {
+    console.error('Erro ao adicionar comentário:', error);
+    res.redirect('/post/' + req.params.id);
+  }
 });
 
 // Excluir post
-app.post('/dashboard/delete/:id', requireLogin, (req, res) => {
-  let posts = loadPosts();
-  posts = posts.filter(p => p.id != req.params.id);
-  savePosts(posts);
-  res.redirect('/dashboard');
+app.post('/dashboard/delete/:id', requireLogin, async (req, res) => {
+  try {
+    await Post.findByIdAndDelete(req.params.id);
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error('Erro ao excluir post:', error);
+    res.redirect('/dashboard');
+  }
 });
 
 // Excluir comentario
-
-app.post('/post/:id/comment/:commentIdx/delete', requireLogin, (req, res) => {
-  const posts = loadPosts();
-  const post = posts.find(p => p.id == req.params.id);
-  if (!post) return res.redirect('/');
-  const idx = parseInt(req.params.commentIdx, 10);
-  if (!isNaN(idx) && idx >= 0 && idx < post.comments.length) {
-    post.comments.splice(idx, 1);
-    savePosts(posts);
+app.post('/post/:id/comment/:commentIdx/delete', requireLogin, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.redirect('/');
+    
+    const idx = parseInt(req.params.commentIdx, 10);
+    if (!isNaN(idx) && idx >= 0 && idx < post.comments.length) {
+      post.comments.splice(idx, 1);
+      await post.save();
+    }
+    res.redirect('/post/' + req.params.id);
+  } catch (error) {
+    console.error('Erro ao excluir comentário:', error);
+    res.redirect('/post/' + req.params.id);
   }
-  res.redirect('/post/' + req.params.id);
 });
 
 // Editar post - mostrar formulário
-app.get('/dashboard/edit/:id', requireLogin, (req, res) => {
-  const posts = loadPosts();
-  const post = posts.find(p => p.id == req.params.id);
-  if (!post) return res.redirect('/dashboard');
-  res.render('edit', { post });
+app.get('/dashboard/edit/:id', requireLogin, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.redirect('/dashboard');
+    res.render('edit', { post });
+  } catch (error) {
+    console.error('Erro ao buscar post para edição:', error);
+    res.redirect('/dashboard');
+  }
 });
 
 // Editar post - salvar alterações
-app.post('/dashboard/edit/:id', requireLogin, (req, res) => {
-  const posts = loadPosts();
-  const post = posts.find(p => p.id == req.params.id);
-  if (!post) return res.redirect('/dashboard');
-  post.title = req.body.title;
-  post.content = req.body.content;
-  savePosts(posts);
-  res.redirect('/dashboard');
+app.post('/dashboard/edit/:id', requireLogin, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.redirect('/dashboard');
+    
+    post.title = req.body.title;
+    post.content = req.body.content;
+    await post.save();
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error('Erro ao editar post:', error);
+    res.redirect('/dashboard');
+  }
 });
 
