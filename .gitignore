@@ -7,6 +7,16 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+# Environment variables
+.env
+.env.local
+.env.production
+.env.staging
+
+# Database backups
+*.backup-*
+posts.json.backup-*
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 

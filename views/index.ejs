@@ -23,7 +23,7 @@
             <% } else { %>
               <div class="posts-feed home-feed">
                 <% posts.forEach(function(post) { %>
-                  <div class="post-card" onclick="window.location='/post/<%= post.id %>'" style="cursor:pointer;">
+                  <div class="post-card" onclick="window.location='/post/<%= post._id %>'" style="cursor:pointer;">
                     <div class="post-title-feed"><%= post.title %></div>
                     <% if (post.fileUrl) { %>
                       <div class="post-file">
