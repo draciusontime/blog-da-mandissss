@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "node index.js",
+    "migrate": "node scripts/migrate-data.js"
   },
   "keywords": [],
   "author": "",
@@ -13,9 +16,11 @@
     "@types/node": "^22.13.11",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
+    "dotenv": "^16.3.1",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
+    "mongoose": "^8.0.3",
     "multer": "^2.0.2"
   }
 }

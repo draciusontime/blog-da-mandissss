@@ -9,7 +9,7 @@
     <a href="/dashboard" class="back-home">← Voltar para Dashboard</a>
     <div class="dashboard-container">
       <h2>Editar Post</h2>
-      <form method="POST" action="/dashboard/edit/<%= post.id %>">
+      <form method="POST" action="/dashboard/edit/<%= post._id %>">
         <input type="text" name="title" value="<%= post.title %>" required>
         <textarea name="content" required><%= post.content %></textarea>
         <button type="submit">Salvar Alterações</button>
