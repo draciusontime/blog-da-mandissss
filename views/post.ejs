@@ -28,14 +28,14 @@
                       <li>
                         <span><%= c %></span>
                         <% if (session && session.user === 'mandis') { %>
-                          <form method="POST" action="/post/<%= post.id %>/comment/<%= idx %>/delete" style="display:inline;">
+                          <form method="POST" action="/post/<%= post._id %>/comment/<%= idx %>/delete" style="display:inline;">
                             <button type="submit" class="delete-comment-btn" title="Excluir comentário">🗑️</button>
                           </form>
                         <% } %>
                       </li>
                     <% }) %>
                   </ul>
-                  <form method="POST" action="/post/<%= post.id %>/comment" class="comment-form">
+                  <form method="POST" action="/post/<%= post._id %>/comment" class="comment-form">
                     <input type="text" name="comment" placeholder="Seu comentário..." required>
                     <button type="submit">Comentar</button>
                   </form>

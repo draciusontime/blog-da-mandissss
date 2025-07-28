@@ -131,3 +131,6 @@ dist
 
 # Replit debugger
 .breakpoints
+
+# Posts JSON (old format, now using MongoDB)
+posts.json
